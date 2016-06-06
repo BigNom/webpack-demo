@@ -8,6 +8,10 @@ const parts = require('./lib/parts');
 
 const PATHS = {
   app: path.join(__dirname, 'app'),
+  style: [
+    path.join(__dirname, 'node_modules', 'purecss'),
+    path.join(__dirname, 'app', 'main.css'),
+  ],
   build: path.join(__dirname, 'build')
 };
 
@@ -16,6 +20,7 @@ const common = {
   // We'll be using the latter form given it's
   // convenient with more complex configurations.
   entry: {
+    style: PATHS.style,
     app: PATHS.app
   },
   output: {
@@ -35,8 +40,9 @@ var config;
 // Detect how npm is run and branch based on that
 switch(process.env.npm_lifecycle_event) {
   case 'build':
+  case 'stats':
     config = merge(
-common, {
+      common, {
         devtool: 'source-map',
         output: {
           path: PATHS.build,
@@ -56,7 +62,8 @@ common, {
         entries: ['react']
       }),
       parts.minify(),
-      parts.extractCSS(PATHS.style)
+      parts.extractCSS(PATHS.style),
+      parts.purifyCSS([PATHS.app])
     );
     break;
     default:
@@ -65,7 +72,7 @@ common, {
       {
         devtool: 'eval-source-map'
       },
-      parts.setupCSS(PATHS.app),
+      parts.setupCSS(PATHS.style),
       parts.devServer({
         host: process.env.HOST,
         port: process.env.PORT
